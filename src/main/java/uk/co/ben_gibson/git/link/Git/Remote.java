@@ -37,7 +37,7 @@ public class Remote
 
             url = StringUtil.trim(url);
             url = StringUtil.trimEnd(url, ".git");
-            url = Remote.trimHostName(url);
+            url = Remote.cutHostSuffix(url);
 
             // Do not try to remove the port if the URL uses the SSH protocol in the SCP syntax. For example
             // 'git@github.com:foo.git'. This syntax does not support port definitions. Attempting to remove the port
@@ -89,21 +89,13 @@ public class Remote
         return (result.getOutput().size() == 1);
     }
 
-    private static String trimHostName(String url) {
-        int firstSlash = url.indexOf('/');
-        int firstColon = url.indexOf(':');
-        if (firstColon < firstSlash) {
-            firstSlash = firstColon;
+    private static String cutHostSuffix(String url) {
+        int end = url.lastIndexOf(':');
+        int dot = url.lastIndexOf('.', end);
+        int start = url.indexOf('-', dot);
+        if (dot > -1 && start > dot && start < end) {
+            return url.substring(0, start) + url.substring(end);
         }
-
-        int lastDot = url.lastIndexOf('.', firstSlash);
-        if (lastDot > 0 && lastDot < firstSlash) {
-            int firstDash = url.indexOf('-', lastDot);
-            if (firstDash > lastDot && firstDash < firstSlash) {
-                return url.substring(0, firstDash) + url.substring(firstSlash);
-            }
-        }
-
         return url;
     }
 }
